@@ -23,8 +23,7 @@ void hostDescoveryMenu() {
     std::cout << "\n=== Host Discovery ===\n";
     std::cout << "1. TCP Ping Sweep\n";
     std::cout << "2. Arp Scan\n";
-    std::cout << "3. Both\n";
-    std::cout << "4. Back\n";
+    std::cout << "3. Back\n";
     std::cout << "Choose (1-4): ";
 
     std::cin >> choice;
@@ -37,9 +36,6 @@ void hostDescoveryMenu() {
             arp_network_discovery();
             break;
         case 3:
-            tcpAndARP();
-            break;
-        case 4:
             main_menu();
             break;
         default:
