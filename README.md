@@ -1,7 +1,7 @@
 <h1 align="center"> NScan </h1>
 <h3 align="center"> This Tool Was Made By Kanax01 And Uses The GPL 3.0 License</h3>
 <p align="center"> Controbutions To The Project Are Appreciated Along With Feedback </p>
-
+<p align="center"> Vulcan Security</p>
 <h3 align="center"> Info & Disclaimer </h3>
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -34,4 +34,5 @@ root@localhost$ make <--- This just compiles for you to run with the ./nscan com
 root@localhost$ ./nscan <--- Runs Program
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+<img align="center" src="vulcan.png">
 <img align="center" src="kanax01.png">
