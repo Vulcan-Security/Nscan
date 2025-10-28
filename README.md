@@ -1,5 +1,5 @@
 <h1 align="center"> NScan </h1>
-<h3 align="center"> This Tool Was Built And Maintained By Kanax01 And Vulcan Security</h3>
+<h3 align="center"> This Tool Was Built And Maintained By Kanax01 And The Vulcan Security Team</h3>
 <p align="center"> Controbutions To The Project Are Appreciated Along With Feedback </p>
 <p align="center"> Vulcan Security</p>
 <h3 align="center"> Info & Disclaimer </h3>
