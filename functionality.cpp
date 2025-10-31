@@ -128,7 +128,7 @@ std::string getHostname(const std::string& ip) {
     if (fgets(buffer, sizeof(buffer), pipe) != NULL) {
         result = buffer;
         result.erase(result.find_last_not_of(" \n\r\t") + 1);
-        if (result.back() == '.') result.pop_back();
+        if (!result.empty() && result.back() == '.') result.pop_back();
     }
     pclose(pipe);
     return result;
@@ -153,6 +153,9 @@ void scanCommonServices(const std::string& ip) {
 
 //<----------------TCP IP Scanner Menu--------------------->
 void tcpHostDescovery() {
+    clear_screen();
+    acs2_menu_art();
+
     std::string start;
     std::string network;
 
@@ -160,17 +163,30 @@ void tcpHostDescovery() {
     std::cout << "Enter Network (e.g., 192.168.1): ";
     std::cin >> network;
 
+    // Validate network format (should be first 3 octets)
+    std::regex network_regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){2}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$");
+    if (!std::regex_match(network, network_regex)) {
+        std::cout << "Invalid network format! Please use format: 192.168.1\n";
+        std::cout << "Press enter to try again...";
+        std::cin.ignore();
+        std::cin.get();
+        tcpHostDescovery();
+        return;
+    }
+
     std::cout << "Start? (y/n): ";
     std::cin >> start;
     if (start != "y") {
         if (start != "n") {
             std::cout << "Invalid Choice...\n";
-            tcpHostDescovery();
         }
         std::cout << "Going Back...\n";
         hostDescoveryMenu();
         return;
     }
+
+    clear_screen();
+    acs2_menu_art();
 
     // Get our own IP and gateway first
     std::string ourIP = getOurIP();
@@ -202,7 +218,11 @@ void tcpHostDescovery() {
 
         show_progress(i, 254, "Scanning");
     }
-    std::cout << "\nScan complete!\n";
+    std::cout << "\n\nScan complete!\n";
+    std::cout << "Press enter to continue...";
+    std::cin.ignore();
+    std::cin.get();
+    hostDescoveryMenu();
 }
 
 
@@ -243,6 +263,8 @@ std::string extractMACFromARP(const std::string& arpEntry) {
 //<------------------ARP Host Descovery--------------------->
 
 void arpHostDescovery() {
+    clear_screen();
+    acs2_menu_art();
     std::string start;
     std::string network;
 
@@ -250,12 +272,22 @@ void arpHostDescovery() {
     std::cout << "Enter Network (e.g., 192.168.1): ";
     std::cin >> network;
 
+    // Validate network format (should be first 3 octets)
+    std::regex network_regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){2}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$");
+    if (!std::regex_match(network, network_regex)) {
+        std::cout << "Invalid network format! Please use format: 192.168.1\n";
+        std::cout << "Press enter to try again...";
+        std::cin.ignore();
+        std::cin.get();
+        arpHostDescovery();
+        return;
+    }
+
     std::cout << "Start? (y/n): ";
     std::cin >> start;
     if (start != "y") {
         if (start != "n") {
             std::cout << "Invalid Choice...\n";
-            arpHostDescovery();
         }
         std::cout << "Going Back...\n";
         hostDescoveryMenu();
@@ -266,11 +298,15 @@ void arpHostDescovery() {
     std::string ourIP = getOurIP();
     std::string gateway = getGatewayIP();
 
+    clear_screen();
+    acs2_menu_art();
+
     std::cout << "Scanning network " << network << ".0/24 using ARP...\n";
     std::cout << "Our IP: " << ourIP << "\n";
     std::cout << "Gateway: " << gateway << "\n\n";
 
     // First, ping all hosts to populate ARP table
+
     std::cout << "Populating ARP table...\n";
     for (int i = 1; i < 255; i++) {
         std::string targetIP = network + "." + std::to_string(i);
@@ -286,6 +322,8 @@ void arpHostDescovery() {
     std::this_thread::sleep_for(std::chrono::seconds(3));
 
     // Read ARP table to find live hosts
+    clear_screen();
+    acs2_menu_art();
     std::cout << "Reading ARP table...\n";
     std::vector<std::string> liveHosts = readARPTable();
 
@@ -314,7 +352,7 @@ void arpHostDescovery() {
         std::cout << "-----------------------------------\n";
     }
 
-    std::cout << "Found " << liveHosts.size() << " live hosts\n";
+    std::cout << "\nFound " << liveHosts.size() << " live hosts\n";
     std::cout << "Press enter to continue...";
     std::cin.ignore();
     std::cin.get();
@@ -324,14 +362,36 @@ void arpHostDescovery() {
 
 
 //<-------------TCP Port Scanner Functionality--------------->
-void tcp_port_scanner(const std::string& ip) {
+void tcp_port_scanner() {
+    clear_screen();
+    acs2_menu_art();
+
+    std::string targetIP;
     int portChoice;
     std::string start;
+
+    // Ask for target IP first
+    std::cout << "\n=== TCP Port Scanner ===\n";
+    std::cout << "Enter Target IP Address: ";
+    std::cin >> targetIP;
+
+    // Validate IP address
+    if (!isValidIPv4(targetIP)) {
+        std::cout << "Invalid IP address format!\n";
+        std::cout << "Press enter to try again...";
+        std::cin.ignore();
+        std::cin.get();
+        tcp_port_scanner();
+        return;
+    }
 
     // Clear previous results
     livePorts.clear();
     deadPorts.clear();
 
+    clear_screen();
+    acs2_menu_art();
+    std::cout << "\nTarget IP: " << targetIP << "\n\n";
     std::cout << "Select scan type:\n";
     std::cout << "1. Scan Common Ports\n";
     std::cout << "2. Range Scan\n";
@@ -340,15 +400,28 @@ void tcp_port_scanner(const std::string& ip) {
     std::cout << "Choice: ";
     std::cin >> portChoice;
 
-    if (portChoice < 4 || portChoice > 1) {
+    if (portChoice == 4) {
+        std::cout << "Going Back...\n";
+        main_menu();
+        return;
+    }
+
+    if (portChoice < 1 || portChoice > 4) {
         std::cout << "Invalid Choice\n";
+        std::cout << "Press enter to try again...";
+        std::cin.ignore();
+        std::cin.get();
+        tcp_port_scanner();
+        return;
     }
 
     if (portChoice == 1) { // Scan All Common Ports
-        std::cout << "Scanning common ports on " << ip << "...\n";
+        clear_screen();
+        acs2_menu_art();
+        std::cout << "Scanning common ports on " << targetIP << "...\n\n";
 
         for (int port : commonPorts) {
-            bool isUp = isPortOpen(ip.c_str(), port);
+            bool isUp = isPortOpen(targetIP.c_str(), port);
             if (isUp) {
                 std::cout << "Port " << port << " is OPEN" << std::endl;
                 livePorts.push_back(port);
@@ -364,15 +437,27 @@ void tcp_port_scanner(const std::string& ip) {
         std::cout << "Enter Second Port Number: ";
         std::cin >> num2;
 
-        std::cout << "Start? (y/n): ";
-        std::cin >> start;
-        if (start != "y") {
+        if (num1 < 1 || num1 > 65535 || num2 < 1 || num2 > 65535 || num1 > num2) {
+            std::cout << "Invalid port range! Ports must be between 1-65535 and first <= second\n";
+            std::cout << "Press enter to try again...";
+            std::cin.ignore();
+            std::cin.get();
+            tcp_port_scanner();
             return;
         }
 
-        std::cout << "Scanning ports " << num1 << " to " << num2 << " on " << ip << "...\n";
+        std::cout << "Start? (y/n): ";
+        std::cin >> start;
+        if (start != "y") {
+            tcp_port_scanner();
+            return;
+        }
+
+        clear_screen();
+        acs2_menu_art();
+        std::cout << "Scanning ports " << num1 << " to " << num2 << " on " << targetIP << "...\n\n";
         for (int port = num1; port <= num2; port++) {
-            bool isUp = isPortOpen(ip.c_str(), port);
+            bool isUp = isPortOpen(targetIP.c_str(), port);
             if (isUp) {
                 std::cout << "Port " << port << " is OPEN" << std::endl;
                 livePorts.push_back(port);
@@ -384,45 +469,64 @@ void tcp_port_scanner(const std::string& ip) {
         std::cout << "\n";
     }
     else if (portChoice == 3) { // Full Port Scan - All 65,535
+        std::cout << "WARNING: Full port scan will take a long time!\n";
+        std::cout << "Start? (y/n): ";
+        std::cin >> start;
+        if (start != "y") {
+            tcp_port_scanner();
+            return;
+        }
+
+        clear_screen();
+        acs2_menu_art();
         int maxPorts = 65535;
-        std::cout << "Starting TCP Port Scan on IP: " << ip << "\n";
+        std::cout << "Starting TCP Port Scan on IP: " << targetIP << "\n\n";
         for (int port = 1; port <= maxPorts; port++) {
-            bool isUp = isPortOpen(ip.c_str(), port);
+            bool isUp = isPortOpen(targetIP.c_str(), port);
             if (isUp) {
-                std::cout << "Port " << port << " is OPEN" << std::endl;
+                std::cout << "\nPort " << port << " is OPEN" << std::endl;
                 livePorts.push_back(port);
             } else {
                 deadPorts.push_back(port);
             }
-            if (port % 1000 == 0) {
+            if (port % 100 == 0) {
                 show_progress(port, maxPorts, "Scanning");
             }
         }
         std::cout << "\n";
     }
 
-    if (portChoice == 4) {
-        std::cout << "Going Back...\n";
-        main_menu();
-    } 
-
     // Display Results
-    std::cout << "TCP Port Scan Completed.\n";
-    std::cout << "Live Ports:" << std::endl;
-    for (int port : livePorts) {
-        std::cout << "Port " << port << " is open" << std::endl;
+    clear_screen();
+    acs2_menu_art();
+    std::cout << "\n=== TCP Port Scan Results ===\n";
+    std::cout << "Target: " << targetIP << "\n\n";
+    std::cout << "Open Ports:\n";
+    if (livePorts.empty()) {
+        std::cout << "  No open ports found\n";
+    } else {
+        for (int port : livePorts) {
+            std::cout << "  Port " << port << " is OPEN" << std::endl;
+        }
     }
     std::cout << "-----------------------------------------------\n";
     std::cout << "Total open ports: " << livePorts.size() << std::endl;
     std::cout << "Total closed ports: " << deadPorts.size() << std::endl;
 
-    std::cout << "Press enter to continue...";
+    std::cout << "\nPress enter to continue...";
     std::cin.ignore();
     std::cin.get();
+    main_menu();
 }
 
 
 void packetSniffer() {
+    clear_screen();
+    acs2_menu_art();
+    std::cout << "\n=== Packet Sniffer ===\n";
     std::cout << "Coming Soon...\n";
+    std::cout << "\nPress enter to continue...";
+    std::cin.ignore();
+    std::cin.get();
     main_menu();
 }
