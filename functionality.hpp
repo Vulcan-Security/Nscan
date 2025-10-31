@@ -23,7 +23,7 @@ void clear_screen();
 void packetSniffer();
 bool isValidIPv4(const std::string& ip);
 bool isPortOpen(const char* ip, int port);
-void tcp_port_scanner(const std::string& ip);
+void tcp_port_scanner();
 void show_progress(int current, int total, const std::string& message);
 void tcpHostDescovery();
 void arpHostDescovery();
