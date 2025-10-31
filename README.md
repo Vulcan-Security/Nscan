@@ -24,8 +24,8 @@ Enjoy -- Kanax01
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Dont Forget To Give Program Exexutable Privliges
-root@localhost$ make complete <----Compiles everything into a .exe and a executable for Debian and Unix Distros
-root@localhost$ make <--- This just compiles for you to run with the ./nscan command
+root@localhost$ make
+root@localhost$ chmod +x nscan
 root@localhost$ ./nscan <--- Runs Program
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
