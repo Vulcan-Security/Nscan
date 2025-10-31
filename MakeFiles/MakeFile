@@ -1,35 +1,16 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -Wpedantic
-LDFLAGS = -pthread
+CXXFLAGS = -std=c++17 -Wall -Wextra -Wpedantic -g
+LDLIBS = -pthread
 
 SRCS = nscan.cpp menus.cpp functionality.cpp
-OBJS = $(SRCS:.cpp=.o)
 TARGET = nscan
-TARGET_EXE = nscan.exe
-RELEASE_DIR = releases
 
-.PHONY: all clean complete
+.PHONY: all clean
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)
-
-$(TARGET_EXE): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET_EXE) $(OBJS) $(LDFLAGS)
-
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-complete: $(TARGET) $(TARGET_EXE)
-	@mkdir -p $(RELEASE_DIR)
-	@mv $(TARGET) $(RELEASE_DIR)/
-	@mv $(TARGET_EXE) $(RELEASE_DIR)/
-	@echo "Build complete! Executables saved to $(RELEASE_DIR)/"
-	@echo "  - $(RELEASE_DIR)/$(TARGET)"
-	@echo "  - $(RELEASE_DIR)/$(TARGET_EXE)"
+$(TARGET): $(SRCS)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRCS) $(LDLIBS)
 
 clean:
-	rm -f $(OBJS) $(TARGET) $(TARGET_EXE)
-	rm -rf $(RELEASE_DIR)
-#sudo apt-get install mingw-w64 <--- Needed on machine for exe building
+	rm -f $(TARGET)
