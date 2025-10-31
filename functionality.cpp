@@ -17,9 +17,13 @@
 #include <unistd.h>
 
 // Initialize global variables
+std::string ip;
 std::array<int, 11> commonPorts = {20,21,22,23,25,53,80,110,143,443,3389};
 std::vector<int> livePorts;
 std::vector<int> deadPorts;
+std::vector<std::string> liveIP;
+std::vector<std::string> deadIP;
+std::vector<std::string> gateway;
 
 //----------------------------------------------------------------------------------------
 //-----------------------------------Core Functionality-----------------------------------
@@ -271,7 +275,8 @@ void arpHostDescovery() {
     for (int i = 1; i < 255; i++) {
         std::string targetIP = network + "." + std::to_string(i);
         std::string command = "ping -c 1 -W 1 " + targetIP + " > /dev/null 2>&1 &";
-        system(command.c_str()); // figure out why compiler errors here
+        int result = system(command.c_str());
+        (void)result; // Explicitly ignore return value to suppress warning
         show_progress(i, 254, "Pinging");
     }
     std::cout << "\n";
@@ -414,7 +419,6 @@ void tcp_port_scanner(const std::string& ip) {
     std::cout << "Press enter to continue...";
     std::cin.ignore();
     std::cin.get();
-    portScanningMenu();
 }
 
 
