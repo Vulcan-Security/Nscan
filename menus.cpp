@@ -70,8 +70,7 @@ void main_menu() {
             tcp_port_scanner(ip);
             break;
         case 3:
-            std::cout << "Coming Soon...\n";
-            main_menu();
+            packetSniffer();
             break;
         case 4:
             std::cout << "Exiting...\n";
