@@ -47,12 +47,12 @@ bool isValidIPv4(const std::string& ip) {
 bool isPortOpen(const char* ip, int port) {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) return false;
-    
+
     struct sockaddr_in target;
     target.sin_family = AF_INET;
     target.sin_port = htons(port);
     inet_pton(AF_INET, ip, &target.sin_addr);
-    
+
     bool isOpen = (connect(sock, (struct sockaddr*)&target, sizeof(target)) == 0);
     close(sock);
     return isOpen;
@@ -66,7 +66,7 @@ bool isPortOpen(const char* ip, int port) {
 // Check if host is alive using TCP
 bool isHostAlive(const std::string& ip) {
     std::vector<int> testPorts = {22, 80, 443, 135, 445}; // Common ports
-    
+
     for (int port : testPorts) {
         if (isPortOpen(ip.c_str(), port)) {
             return true;
@@ -81,7 +81,7 @@ std::string getOurIP() {
     FILE* pipe = popen(command.c_str(), "r");
     char buffer[128];
     std::string result = "Unknown";
-    
+
     if (fgets(buffer, sizeof(buffer), pipe) != NULL) {
         result = buffer;
         result.erase(result.find_last_not_of(" \n\r\t") + 1);
@@ -96,7 +96,7 @@ std::string getGatewayIP() {
     FILE* pipe = popen(command.c_str(), "r");
     char buffer[128];
     std::string result = "Unknown";
-    
+
     if (fgets(buffer, sizeof(buffer), pipe) != NULL) {
         result = buffer;
         result.erase(result.find_last_not_of(" \n\r\t") + 1);
@@ -120,7 +120,7 @@ std::string getHostname(const std::string& ip) {
     FILE* pipe = popen(command.c_str(), "r");
     char buffer[128];
     std::string result = "Unknown";
-    
+
     if (fgets(buffer, sizeof(buffer), pipe) != NULL) {
         result = buffer;
         result.erase(result.find_last_not_of(" \n\r\t") + 1);
@@ -137,27 +137,12 @@ void scanCommonServices(const std::string& ip) {
         {53, "DNS"}, {80, "HTTP"}, {110, "POP3"}, {143, "IMAP"},
         {443, "HTTPS"}, {445, "SMB"}, {3389, "RDP"}
     };
-    
+
     for (auto& service : services) {
         if (isPortOpen(ip.c_str(), service.first)) {
             std::cout << "    - Port " << service.first << " (" << service.second << ")\n";
         }
     }
-}
-
-// Your existing port check function
-bool isPortOpen(const char* ip, int port) {
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock < 0) return false;
-    
-    struct sockaddr_in target;
-    target.sin_family = AF_INET;
-    target.sin_port = htons(port);
-    inet_pton(AF_INET, ip, &target.sin_addr);
-    
-    bool isOpen = (connect(sock, (struct sockaddr*)&target, sizeof(target)) == 0);
-    close(sock);
-    return isOpen;
 }
 
 
@@ -166,7 +151,7 @@ bool isPortOpen(const char* ip, int port) {
 void tcpHostDescovery() {
     std::string start;
     std::string network;
-    
+
     std::cout << "\n=== TCP Host Discovery ===\n";
     std::cout << "Enter Network (e.g., 192.168.1): ";
     std::cin >> network;
@@ -182,35 +167,35 @@ void tcpHostDescovery() {
         hostDescoveryMenu();
         return;
     }
-    
+
     // Get our own IP and gateway first
     std::string ourIP = getOurIP();
     std::string gateway = getGatewayIP();
-    
+
     std::cout << "Scanning network " << network << ".0/24...\n";
     std::cout << "Our IP: " << ourIP << "\n";
     std::cout << "Gateway: " << gateway << "\n\n";
-    
+
     // Scan all IPs in the network
     for (int i = 1; i < 255; i++) {
         std::string targetIP = network + "." + std::to_string(i);
-        
+
         if (isHostAlive(targetIP)) {
             std::string deviceType = identifyDevice(targetIP);
             std::string hostname = getHostname(targetIP);
-            
+
             std::cout << "Live Host: " << targetIP;
             if (targetIP == ourIP) std::cout << " [OUR DEVICE]";
             if (targetIP == gateway) std::cout << " [ROUTER]";
             std::cout << "\n";
-            
+
             std::cout << "  Hostname: " << hostname << "\n";
             std::cout << "  Device Type: " << deviceType << "\n";
             std::cout << "  Open Services:\n";
             scanCommonServices(targetIP);
             std::cout << "-----------------------------------\n";
         }
-        
+
         show_progress(i, 254, "Scanning");
     }
     std::cout << "\nScan complete!\n";
@@ -224,9 +209,9 @@ std::vector<std::string> readARPTable() {
     std::vector<std::string> liveHosts;
     std::string command = "arp -a | grep -v incomplete";
     FILE* pipe = popen(command.c_str(), "r");
-    
+
     if (!pipe) return liveHosts;
-    
+
     char buffer[256];
     while (fgets(buffer, sizeof(buffer), pipe) != NULL) {
         std::string line(buffer);
@@ -243,41 +228,11 @@ std::string extractMACFromARP(const std::string& arpEntry) {
     // ARP entry format: "ip (ip) at mac [interface]"
     size_t atPos = arpEntry.find(" at ");
     if (atPos == std::string::npos) return "Unknown";
-    
+
     size_t bracketPos = arpEntry.find(" [", atPos);
     if (bracketPos == std::string::npos) return "Unknown";
-    
+
     return arpEntry.substr(atPos + 4, bracketPos - (atPos + 4));
-}
-
-// Get our own IP address
-std::string getOurIP() {
-    std::string command = "hostname -I | awk '{print $1}'";
-    FILE* pipe = popen(command.c_str(), "r");
-    char buffer[128];
-    std::string result = "Unknown";
-    
-    if (fgets(buffer, sizeof(buffer), pipe) != NULL) {
-        result = buffer;
-        result.erase(result.find_last_not_of(" \n\r\t") + 1);
-    }
-    pclose(pipe);
-    return result;
-}
-
-// Get gateway IP
-std::string getGatewayIP() {
-    std::string command = "ip route | grep default | awk '{print $3}'";
-    FILE* pipe = popen(command.c_str(), "r");
-    char buffer[128];
-    std::string result = "Unknown";
-    
-    if (fgets(buffer, sizeof(buffer), pipe) != NULL) {
-        result = buffer;
-        result.erase(result.find_last_not_of(" \n\r\t") + 1);
-    }
-    pclose(pipe);
-    return result;
 }
 
 
@@ -302,58 +257,58 @@ void arpHostDescovery() {
         hostDescoveryMenu();
         return;
     }
-    
-    // Get our own IP and gateway first
+
+    // Get own IP and gateway first
     std::string ourIP = getOurIP();
     std::string gateway = getGatewayIP();
-    
+
     std::cout << "Scanning network " << network << ".0/24 using ARP...\n";
     std::cout << "Our IP: " << ourIP << "\n";
     std::cout << "Gateway: " << gateway << "\n\n";
-    
+
     // First, ping all hosts to populate ARP table
     std::cout << "Populating ARP table...\n";
     for (int i = 1; i < 255; i++) {
         std::string targetIP = network + "." + std::to_string(i);
         std::string command = "ping -c 1 -W 1 " + targetIP + " > /dev/null 2>&1 &";
-        system(command.c_str());
+        system(command.c_str()); // figure out why compiler errors here
         show_progress(i, 254, "Pinging");
     }
     std::cout << "\n";
-    
+
     // Wait for pings to complete
     std::cout << "Waiting for responses...\n";
     std::this_thread::sleep_for(std::chrono::seconds(3));
-    
+
     // Read ARP table to find live hosts
     std::cout << "Reading ARP table...\n";
     std::vector<std::string> liveHosts = readARPTable();
-    
+
     // Display results
     std::cout << "\n=== ARP Scan Results ===\n";
     for (const auto& host : liveHosts) {
         // Parse IP from ARP entry
         std::string ip = host.substr(0, host.find(' '));
-        
+
         std::cout << "Live Host: " << ip;
         if (ip == ourIP) std::cout << " [OUR DEVICE]";
         if (ip == gateway) std::cout << " [ROUTER]";
         std::cout << "\n";
-        
+
         // Get additional info
         std::string hostname = getHostname(ip);
         std::string deviceType = identifyDevice(ip);
-        
+
         std::cout << "  Hostname: " << hostname << "\n";
         std::cout << "  Device Type: " << deviceType << "\n";
         std::cout << "  MAC Address: " << extractMACFromARP(host) << "\n";
-        
+
         // Scan common services
         std::cout << "  Open Services:\n";
         scanCommonServices(ip);
         std::cout << "-----------------------------------\n";
     }
-    
+
     std::cout << "Found " << liveHosts.size() << " live hosts\n";
     std::cout << "Press enter to continue...";
     std::cin.ignore();
@@ -367,7 +322,7 @@ void arpHostDescovery() {
 void tcp_port_scanner(const std::string& ip) {
     int portChoice;
     std::string start;
-    
+
     // Clear previous results
     livePorts.clear();
     deadPorts.clear();
@@ -376,18 +331,17 @@ void tcp_port_scanner(const std::string& ip) {
     std::cout << "1. Scan Common Ports\n";
     std::cout << "2. Range Scan\n";
     std::cout << "3. Full Port Scan\n";
-    std::cout << "4. Back\n"
+    std::cout << "4. Back\n";
     std::cout << "Choice: ";
     std::cin >> portChoice;
 
     if (portChoice < 4 || portChoice > 1) {
         std::cout << "Invalid Choice\n";
-        tcp_port_scanner();
     }
 
     if (portChoice == 1) { // Scan All Common Ports
         std::cout << "Scanning common ports on " << ip << "...\n";
-        
+
         for (int port : commonPorts) {
             bool isUp = isPortOpen(ip.c_str(), port);
             if (isUp) {
@@ -410,7 +364,7 @@ void tcp_port_scanner(const std::string& ip) {
         if (start != "y") {
             return;
         }
-        
+
         std::cout << "Scanning ports " << num1 << " to " << num2 << " on " << ip << "...\n";
         for (int port = num1; port <= num2; port++) {
             bool isUp = isPortOpen(ip.c_str(), port);
@@ -446,7 +400,7 @@ void tcp_port_scanner(const std::string& ip) {
         std::cout << "Going Back...\n";
         main_menu();
     } 
-    
+
     // Display Results
     std::cout << "TCP Port Scan Completed.\n";
     std::cout << "Live Ports:" << std::endl;
@@ -456,25 +410,15 @@ void tcp_port_scanner(const std::string& ip) {
     std::cout << "-----------------------------------------------\n";
     std::cout << "Total open ports: " << livePorts.size() << std::endl;
     std::cout << "Total closed ports: " << deadPorts.size() << std::endl;
-    
+
     std::cout << "Press enter to continue...";
     std::cin.ignore();
     std::cin.get();
     portScanningMenu();
 }
 
-void arp_network_discovery() {
-    std::cout << "Not Implemented Yet\n";
-    hostDescoveryMenu();
-}
 
-void tcpAndARP() {
-    std::cout << "Not Implemented Yet\n";
-    hostDescoveryMenu();
-}
-
-void mapNetwork() {
-    std::cout << "Coming Soon...\n";  // Not implemented yet
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+void packetSniffer() {
+    std::cout << "Coming Soon...\n";
     main_menu();
 }
