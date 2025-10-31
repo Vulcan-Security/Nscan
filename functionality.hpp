@@ -20,12 +20,12 @@ extern std::vector<std::string> deadIP;
 extern std::vector<std::string> gateway;
 // Functions
 void clear_screen();
+void packetSniffer();
 bool isValidIPv4(const std::string& ip);
 bool isPortOpen(const char* ip, int port); //Why is this not in scope
 void tcp_port_scanner(const std::string& ip);
 void show_progress(int current, int total, const std::string& message);
 void tcpHostDescovery();
-void tcp_scan();
 void arpHostDescovery();
 std::string getOurIP();
 bool isPortOpen();
