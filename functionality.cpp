@@ -417,18 +417,8 @@ void tcp_port_scanner(const std::string& ip) {
     portScanningMenu();
 }
 
-void arp_network_discovery() {
-    std::cout << "Not Implemented Yet\n";
-    hostDescoveryMenu();
-}
 
-void tcpAndARP() {
-    std::cout << "Not Implemented Yet\n";
-    hostDescoveryMenu();
-}
-
-void mapNetwork() {
-    std::cout << "Coming Soon...\n";  // Not implemented yet
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+void packetSniffer() {
+    std::cout << "Coming Soon...\n";
     main_menu();
 }
